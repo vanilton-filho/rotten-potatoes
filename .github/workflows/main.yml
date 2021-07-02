@@ -30,8 +30,8 @@ jobs:
         uses: docker/build-push-action@v2.6.1
         with:
           context: ./src
-          push: true
           file: ./src/Dockerfile
+          push: true
           tags: |
             vaniltonalv3sfilho/rotten-potatoes:latest
             vaniltonalv3sfilho/rotten-potatoes:${{ github.run_number }}
