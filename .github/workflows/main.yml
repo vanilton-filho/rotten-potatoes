@@ -17,10 +17,8 @@ on:
 jobs:
   # This workflow contains a single job called "build"
   CI:
-    # The type of runner that the job will run on
     runs-on: ubuntu-latest
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       - uses: actions/checkout@v2
       - name: Docker Login
@@ -38,3 +36,14 @@ jobs:
             vaniltonalv3sfilho/rotten-potatoes:latest
             vaniltonalv3sfilho/rotten-potatoes:${{ github.run_number }}
         
+  CD:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Azure Kubernetes set context
+        uses: Azure/aks-set-context@v1.1
+        with:
+          method: kubeconfig
+          kubeconfig: ${{ secrets.K8S_CONFIG }}
+
+      
