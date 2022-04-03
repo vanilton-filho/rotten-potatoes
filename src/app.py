@@ -6,9 +6,9 @@ from models.review import Review
 from mongodb import db
 from models.filme import Filme
 import bson
-from popular import popular
 from prometheus_flask_exporter import PrometheusMetrics
 from middleware import set_unhealth, set_unready_for_seconds, middleware
+from datetime import datetime
 
 app = Flask(__name__,
             static_url_path='', 
@@ -28,12 +28,11 @@ app.config['MONGODB_PASSWORD'] = os.getenv("MONGODB_PASSWORD", "mongopwd")
 
 db.init_app(app)  
 
-popular()
-
 @app.route('/')
 def index():
 
     filmes = Filme.objects
+    app.logger.info('Obtendo a lista de filmes no MongoDB')      
     sliders = sorted(filmes, key=lambda x: len(x.reviews), reverse=False)
     sliders = sliders[-3:]
     return render_template('index.html', filmes=filmes, sliders=sliders)
@@ -52,12 +51,14 @@ def single(oid):
     filme = Filme.objects.get(id=bson.objectid.ObjectId(oid))
     filme.reviews = sorted(filme.reviews, key=lambda x: x.data_review, reverse=True)
 
-    if request.method == 'GET':        
+    if request.method == 'GET':  
+        app.logger.info('Entrando na pagina de review do filme %s', filme.titulo)      
         return render_template('single.html', filme = filme)
     else:
+        app.logger.info('Efetuando cadastro de review no filme %s', filme.titulo)
         nome = request.form['nome']
         review = request.form['review']  
-        o_review = Review(nome=nome, review=review)        
+        o_review = Review(nome=nome, review=review, data_review=datetime.now())        
         filme.add_review(o_review)
         filme.save()
         return redirect(url_for('single', oid=oid))
@@ -68,7 +69,7 @@ def host():
 
 @app.route('/stress/<int:seconds>')
 def stress(seconds):
-    pystress(seconds, 1)
+    #pystress(seconds, 1)
     return Response('OK')
 
 @app.route('/about')
